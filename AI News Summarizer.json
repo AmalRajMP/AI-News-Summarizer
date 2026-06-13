@@ -1,0 +1,286 @@
+{
+  "name": "AI News Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "42b41e67-d162-4d82-8515-8188508b5d0f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://aibusiness.com/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        -128
+      ],
+      "id": "abbcd91b-5723-40b3-9700-131f285f9e7c",
+      "name": "AI Business"
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        64
+      ],
+      "id": "a901c63d-1801-460d-b838-3c7f7c594558",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        48,
+        48
+      ],
+      "id": "0ed18aed-c5a8-4008-8dbd-ace85022e04e",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        272,
+        64
+      ],
+      "id": "8852fc7e-db69-403f-8d56-cb5fdab98269",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI newsletter assistant.\n\nDATA TO ANALYZE:\n\n{{ JSON.stringify($json.data, null, 2) }}\n\nUse ONLY the provided data.\n\nReturn ONLY valid HTML.\n\nDo NOT use markdown.\nDo NOT use code blocks.\nDo NOT add explanations before or after the HTML.\n\nRequirements:\n\n* Modern newsletter design\n* Mobile-friendly layout\n* White content card on light gray background\n* Blue header\n* Purple AI section\n* Green Technology section\n* Orange Events section\n* Rounded cards\n* Read More buttons\n* Maximum 5 AI stories\n* Maximum 5 Technology stories\n* Show AI Events only if present\n* If no events exist, display:\n  \"No AI events scheduled this week\"\n\nHTML Structure:\n\n<html>\n<body style=\"margin:0;padding:20px;background:#f4f7fb;font-family:Arial,sans-serif;\">\n<div style=\"max-width:800px;margin:auto;background:white;border-radius:16px;padding:30px;\">\n\n<h1 style=\"background:#2563eb;color:white;padding:20px;border-radius:12px;text-align:center;\">\n🚀 Daily AI & Tech Intelligence Report\n</h1>\n\n<p>Hello,</p>\n\n<p>Here's your daily intelligence briefing.</p>\n\n<h2 style=\"color:#7c3aed;border-bottom:2px solid #7c3aed;\">\n🤖 AI NEWS HIGHLIGHTS\n</h2>\n\n[AI Article Cards]\n\n<h2 style=\"color:#16a34a;border-bottom:2px solid #16a34a;\">\n💻 TECHNOLOGY UPDATES\n</h2>\n\n[Technology Article Cards]\n\n<h2 style=\"color:#ea580c;border-bottom:2px solid #ea580c;\">\n📅 UPCOMING AI EVENTS\n</h2>\n\n[Event Cards or \"No AI events scheduled this week\"]\n\n<hr style=\"margin-top:30px;\">\n\n<p style=\"color:#666;\">\nYour AI Intelligence Team\n</p>\n\n</div>\n</body>\n</html>\n\nFor each article create:\n\n<div style=\"border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px;\">\n<h3 style=\"margin-top:0;\">HEADLINE</h3>\n<p>SUMMARY</p>\n<a href=\"LINK\"\nstyle=\"background:#2563eb;color:white;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;\">\nRead More →\n</a>\n</div>\n\nReturn ONLY the final HTML.\n",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        496,
+        64
+      ],
+      "id": "403dc821-3c1c-4cb7-bb91-babd9a9c4d42",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        568,
+        288
+      ],
+      "id": "02df62f3-49b5-4e3a-aa20-56a82990f750",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bT3XFz9KiX5u9ypx",
+          "name": "Google Gemini(PaLM) Api account 10181"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "amalrajmp72@gmail.com",
+        "subject": "Today's AI News for you...",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        64
+      ],
+      "id": "e52e7c6a-afc0-4c33-a2bd-d4018e23aadf",
+      "name": "Send a message",
+      "webhookId": "7f5e5da7-82f1-4795-bd94-666fd2fc8886",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BffqQrg2tbAFCUPI",
+          "name": "Gmail account 2317"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://serpapi.com/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "engine",
+              "value": "google_events"
+            },
+            {
+              "name": "q",
+              "value": "AI Tech Events in india"
+            },
+            {
+              "name": "api_key",
+              "value": "0c73a6f58db3a24a47b430aea51f5cb66115c569ec306f2d714145eb0c4b58fa"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -176,
+        256
+      ],
+      "id": "c3eed1f8-89c6-4ada-9893-8160fac75499",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Business",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Business": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "daed9737-fd6b-4b45-80f1-fbea1be07f09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "969257b09ad2942bbaff2e2288304f4969030574d109cdeca05bf11f630884df"
+  },
+  "id": "klTGhwLkf0kwlNSt",
+  "tags": []
+}
